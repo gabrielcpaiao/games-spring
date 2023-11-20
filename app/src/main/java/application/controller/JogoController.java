@@ -79,7 +79,46 @@ public class JogoController {
             @RequestMapping(value = "/update", method = RequestMethod.POST)
             public String update(
                 @RequestParam("id") long id,
-                @RequestParam("titulo") 
-            )
+                @RequestParam("titulo") String titulo,
+                @RequestParam("categoria") long idCategoria,
+                @RequestParam("plataformas") long[] idsPlataformas) {
+                    Optional<Jogo> jogo = jogoRepo.findById(id);
+
+                    if(jogo.isPresent()) {
+                        jogo.get().setTitulo(titulo);
+                        jogo.get().setCategoria(categoriaRepo.findBydId(idCategoria).get());
+                        Set<Plataforma> updatePlataforma = new HashSet<>();
+                        for(long p : idsPlataformas) {
+                            Optional<Plataforma> plataforma = plataformaRepo.findById(p);
+                            if(plataforma.isPresent()) {
+                                updatePlataforma.add(plataforma.get());
+                            }
+                            jogo.get().setPlataformas(updatePlataforma);
+                            jogoRepo.save(jogo.get());
+                        }
+                        return "redirect:/jogo/list";
+                    }
+
+                    @RequestMapping("/delete")
+                    public String delete(
+                        @RequestParam("id") long id,
+                        Model ui) {
+                            Optional<Jogo> jogo = jogoRepo.findById(id);
+
+                            if(jogo.isPresent()) {
+                                ui.addAttribute("jogo", jogo.get());
+                                return "jogo/delete";
+                            }
+
+                            return "redirect:/jogo/list";
+                        }
+
+                        @RequestMapping(value = "/delete", method = RequestMethod.POST)
+                        public String delete(@RequestParam("id") long id) {
+                            jogoRepo.deleteById(id);
+
+                            return "redirect:/jogo/list";
+                        }
+                }
     
 }
